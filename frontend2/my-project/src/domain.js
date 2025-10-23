@@ -1,6 +1,6 @@
 const Host ={
-    URL:"http://localhost:3000/",
-    URLIMAGE:"http://localhost:3000"
+    URL:"https://nihadproject.onrender.com/",
+    URLIMAGE:"https://nihadproject.onrender.com"
 }
 export {
     Host
