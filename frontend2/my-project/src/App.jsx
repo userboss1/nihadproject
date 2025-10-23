@@ -108,7 +108,7 @@ const ProductCard = ({ product, addToCart }) => {
       <div className="relative p-3">
         <div className="relative w-full h-28 mb-2 bg-gray-50 rounded-md overflow-hidden border border-gray-100">
           <img
-            src={`${Host.URLIMAGE}${product.image}`}
+            src={product.image}
             alt={product.name}
             className={`w-full h-full object-cover transition-transform duration-500 ${!isOutOfStock && 'group-hover:scale-110'}`}
           />
@@ -177,7 +177,7 @@ const CartItem = ({ item, removeFromCart, updateCartQuantity, maxQuantity }) => 
     >
       <div className="flex gap-3 items-center">
         <img
-          src={`${Host.URLIMAGE}${item.image}`}
+          src={item.image}
           alt={item.name}
           className="w-12 h-12 object-cover rounded-md flex-shrink-0"
         />
@@ -539,7 +539,7 @@ export default function App() {
         },
         { headers: { "Content-Type": "application/json" } }
       );
-      
+    
       setShowCheckout(false);
       setCart([]);
       fetchProducts();

@@ -14,7 +14,7 @@ export const ProductList = ({ products, addToCart, loading }) => {
             className="p-4 border border-gray-200 rounded-xl text-center flex flex-col items-center"
           >
             <img
-              src={`http://localhost:3000${product.image}`}
+              src={product.image}
               alt={product.name}
               className="h-24 w-24 object-cover rounded-md mb-3"
             />

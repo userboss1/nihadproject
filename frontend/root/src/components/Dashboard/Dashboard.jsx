@@ -1,12 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { PlusCircle, SquarePen, Trash2, X, AlertTriangle, Loader2 } from 'lucide-react';
-import AddProductModal from '../AddProductModal/AddProductModal';
-import { Host } from '../../domain';
-
-// NOTE: Since external files cannot be imported in this environment, 
-// the AddProductModal logic is defined internally as ProductModal 
-// to meet the single-file mandate while maintaining your desired structure.
+// import AddProductModal from '../AddProductModal/AddProductModal'; // NOTE: Logic defined internally
+import { Host } from '../../domain'; // <--- External Host Import Preserved
 
 // --- CUSTOM CONFIRMATION MODAL (Replaces window.confirm) ---
 const ConfirmationModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
@@ -40,7 +36,9 @@ const ConfirmationModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
 };
 
 // --- PRODUCT ADD/EDIT MODAL (Simulates AddProductModal) ---
-const ProductModal = ({  refreshTable }) => {
+// NOTE: Since ProductModal relies on 'product', 'onClose', and 'refreshTable' props, 
+// I've kept the component logic here and renamed it to ProductModal to match the component body below.
+const ProductModal = ({ product, onClose, refreshTable }) => {
   const isEditing = !!product?._id;
   const [formData, setFormData] = useState({
     name: product?.name || '',
@@ -50,7 +48,7 @@ const ProductModal = ({  refreshTable }) => {
     _id: product?._id || null,
   });
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState(null); // For handling API errors
+  const [error, setError] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -181,7 +179,7 @@ const Dashboard = () => {
     productId: null,
   });
 
-  // Fetch products (Restored axios.get)
+  // Fetch products
   const fetchProducts = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -207,7 +205,7 @@ const Dashboard = () => {
     });
   };
 
-  // Execute deletion after confirmation (Restored axios.delete)
+  // Execute deletion after confirmation
   const executeDelete = async () => {
     if (!confirmState.productId) return;
     setConfirmState({ ...confirmState, isOpen: false });
@@ -226,13 +224,13 @@ const Dashboard = () => {
     }
   };
 
-  // Open modal for add or edit (original openModal)
+  // Open modal for add or edit
   const openModal = (product = null) => {
     setEditProduct(product);
     setShowModal(true);
   };
 
-  // Refresh table after add/edit (original refreshTable)
+  // Refresh table after add/edit
   const refreshTable = () => {
     fetchProducts();
     setShowModal(false);
@@ -288,12 +286,13 @@ const Dashboard = () => {
                 products.map((p) => (
                   <tr key={p._id} className="border-t border-gray-100 hover:bg-blue-50 transition-all duration-200 group">
                     <td className="p-4">
+                      {/* 🔴 CORRECTED LINE: Using p.image directly as it is the full, hosted URL 🔴 */}
                       <img
-                        src={`${Host.URLIMAGE }${p.image}`}
+                        src={p.image} 
                         alt={p.name}
                         className="h-12 w-12 object-cover rounded-lg shadow-md transition-transform duration-300 group-hover:scale-[1.05]"
-                        onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/100x100/A0A0A0/ffffff?text=N/A"; }}
-                      />
+                        // Placeholder for broken image links
+                     ></img>
                     </td>
                     <td className="p-4 text-gray-900 font-semibold text-base">{p.name}</td>
                     <td className="p-4 text-gray-600 tabular-nums">{p.quantity}</td>
@@ -322,10 +321,11 @@ const Dashboard = () => {
                     </td>
                   </tr>
                 ))
+                
               ) : (
                 <tr>
                   <td colSpan="5" className="p-12 text-center text-gray-500">
-                    No products found. Check your backend connection at `.
+                    No products found. Check your backend connection at `http://localhost:3000/products`.
                   </td>
                 </tr>
               )}
@@ -336,7 +336,7 @@ const Dashboard = () => {
 
       {/* Conditional Rendering of the Modal */}
       {showModal && (
-        <AddProductModal onClose={() => setShowModal(false)} refreshTable={refreshTable} product={editProduct} />
+        <ProductModal onClose={() => setShowModal(false)} refreshTable={refreshTable} product={editProduct} />
       )}
 
       {/* Deletion Confirmation Modal */}
