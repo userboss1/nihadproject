@@ -16,37 +16,40 @@ const upload = multer({ storage });
  * POST /products/add
  * Add a new product (name, quantity, image)
  */
-router.post("/add", upload.single("image"), async (req, res) => {
+router.post("/add", async (req, res) => {
   try {
     const db = get();
-    const { name, quantity,price } = req.body;
-    
-    if (!name || !quantity || !req.file) {
+    const { name, quantity, price, image } = req.body; // image is now a text field
+
+    // Validate fields
+    if (!name || !quantity || !price) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
     const parsedQuantity = parseInt(quantity);
-    if (isNaN(parsedQuantity)) {
-      return res.status(400).json({ message: "Quantity must be an integer" });
+    const parsedPrice = parseInt(price);
+
+    if (isNaN(parsedQuantity) || isNaN(parsedPrice)) {
+      return res.status(400).json({ message: "Quantity and price must be numbers" });
     }
 
-const newProduct = {
-  name,
-  quantity: parsedQuantity,
-  price:parseInt(price),
-  image: `/uploads/${req.file.filename}`, // always forward slash
-  createdAt: new Date(),
-};
-
+    const newProduct = {
+      name,
+      quantity: parsedQuantity,
+      price: parsedPrice,
+      image: image || "", // optional text field, could be a URL or placeholder
+      createdAt: new Date(),
+    };
 
     await db.collection("products").insertOne(newProduct);
-console.log('good')
+    console.log("✅ Product added successfully");
     res.status(201).json({ message: "✅ Product added successfully", product: newProduct });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error adding product" });
   }
 });
+
 
 /**
  * PUT /products/update/:id

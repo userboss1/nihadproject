@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { X, Upload, Check, AlertCircle } from "lucide-react";
+import { X, Check, AlertCircle } from "lucide-react";
 import axios from "axios";
 import { Host } from "../../domain";
 
 const AddProductModal = ({ onClose, product }) => {
-  const [form, setForm] = useState({ name: "", quantity: "", price: "" });
-  const [image, setImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [form, setForm] = useState({ name: "", quantity: "", price: "", image: "" });
   const [message, setMessage] = useState({ type: "", text: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -17,22 +15,10 @@ const AddProductModal = ({ onClose, product }) => {
         name: product.name,
         quantity: product.quantity,
         price: product.price || "",
+        image: product.image || "",
       });
-      if (product.image) {
-        setImagePreview(`$${Host.URL+product.image}`);
-      }
     }
   }, [product]);
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result);
-      reader.readAsDataURL(file);
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,18 +31,11 @@ const AddProductModal = ({ onClose, product }) => {
         await axios.put(`${Host.URL}products/update/${product._id}`, {
           quantity: form.quantity,
           price: form.price,
+          image: form.image,
         });
       } else {
         // Add new product
-        const formData = new FormData();
-        formData.append("name", form.name);
-        formData.append("quantity", form.quantity);
-        formData.append("price", form.price);
-        if (image) formData.append("image", image);
-
-        await axios.post(`${Host.URL}products/add`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await axios.post(`${Host.URL}products/add`, form);
       }
 
       setMessage({
@@ -67,9 +46,7 @@ const AddProductModal = ({ onClose, product }) => {
     } catch (error) {
       setMessage({
         type: "error",
-        text:
-          error.response?.data?.message ||
-          "❌ Error occurred. Please try again.",
+        text: error.response?.data?.message || "❌ Error occurred. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
@@ -149,38 +126,19 @@ const AddProductModal = ({ onClose, product }) => {
               />
             </div>
 
-            {/* Image (only when adding) */}
-            {!product && (
-                
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Product Image
-                </label>
-                <div className="mt-2">
-                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer hover:border-blue-500 transition-colors bg-gray-50 hover:bg-gray-100">
-                    {imagePreview ? (
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="h-28 object-cover rounded"
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <Upload className="w-10 h-10 text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-500">Click to upload image</p>
-                      </div>
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      required
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-              </div>
-            )}
+            {/* Image URL / Text */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Image URL / Text
+              </label>
+              <input
+                type="text"
+                value={form.image}
+                onChange={(e) => setForm({ ...form, image: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                placeholder="Enter image URL or text reference"
+              />
+            </div>
 
             {/* Message */}
             {message.text && (
